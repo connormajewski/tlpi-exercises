@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "tlpi_hdr.h"
 
+#define MINIMUM_ALLOCATION 16
 #define ALIGNMENT 16
 #define ALIGN(x) (((x) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 
@@ -57,23 +58,43 @@ void * new_malloc(size_t size){
 
 	int isFreeBlock = 0;
 
-	struct block * tmp = sbrk(sizeof(struct block) + size);
+	size = ALIGN(size);
 
-	if(!size) size = 16;
-
-	if(tmp == (void *) -1){
-
-		errno = ENOMEM;
-
-		return NULL;
-
-	}
+	struct block * tmp = NULL;
 
 	struct block * tailTmp = tail;
 
 	while(tailTmp != NULL){
 
 		if(tailTmp->free && tailTmp->size >= size){
+
+			size_t remainder = tailTmp->size - size;
+
+			if(remainder >= sizeof(struct block) + MINIMUM_ALLOCATION){
+
+				struct block * remainderBlock = (struct block *)((char *)(tailTmp + 1) + size);
+
+				remainderBlock->size = remainder - sizeof(struct block);
+				remainderBlock->free = FREE;
+
+				remainderBlock->next = tailTmp->next;
+				remainderBlock->prev = tailTmp;
+
+				if(tailTmp->next != NULL){
+
+					tailTmp->next->prev = remainderBlock;
+
+				}
+
+				else{
+
+					tail = remainderBlock;
+
+				}
+
+				tailTmp->next = remainderBlock;
+
+			}
 
 			tmp = tailTmp;
 
@@ -92,26 +113,36 @@ void * new_malloc(size_t size){
 
 	if(!isFreeBlock){
 
-		tmp->size = ALIGN(size);
+		tmp = sbrk(sizeof(struct block) + size);
+
+		if(tmp == (void *) -1){
+
+			errno = ENOMEM;
+
+			return NULL;
+
+		}
+
+		tmp->size = size;
 		tmp->free = NOT_FREE;
 		tmp->next = NULL;
 		tmp->prev = tail;
 
+		if(tail != NULL){
+
+			tail->next = tmp;
+
+		}
+
+		else{
+
+			heap = tmp;
+
+		}
+
+		tail = tmp;
+
 	}
-
-	if(tail != NULL){
-
-		tail->next = tmp;
-
-	}
-
-	else{
-
-		heap = tmp;
-
-	}
-
-	tail = tmp;
 
 	return (void *) (tmp + 1);
 
@@ -129,47 +160,24 @@ void new_free(void * ptr){
 
 int main(int argc, char * argv){
 
-	int stringSize = 8;
-
-	char * tmp = (char *) new_malloc(stringSize * sizeof(char));
-	char * tmp1 = (char * ) new_malloc(stringSize * 2 * sizeof(char));
-	char * tmp2 = (char * ) new_malloc(stringSize * 2 * sizeof(char));
-	char * tmp3 = (char * ) new_malloc((stringSize * 4)* sizeof(char));
-
-	if(tmp == NULL){
-
-		errExit("new_malloc()");
-
-	}
+	char * b = new_malloc((2 << 16) * sizeof(char));
+	char * a = new_malloc((2 << 8) * sizeof(char));
 
 	printList(tail);
 
-	new_free(tmp);
+	new_free(a);
 
 	printList(tail);
-
-	new_free(tmp3);
-
-	tmp3 = (char * ) new_malloc((stringSize * 4 - 5)* sizeof(char));
-
-	printList(tail);
-
-	char * a = new_malloc(0);
-	char * b = new_malloc(2 << 16 * sizeof(char));
-
-	int size = 10;
-
-	char ** tmp4 = new_malloc(size * sizeof(char *));
-	for(int i=0;i<size;i++) tmp4[i] = new_malloc(size * sizeof(char));
-
-	printList(tail);
-
-	for(int i=0;i<size;i++) new_free(tmp4[i]);
-
-	new_free(tmp4);
 
 	new_free(b);
-	b = new_malloc(2 << 8 * sizeof(char));
+
+	printList(tail);
+
+	char * c = new_malloc((2 << 4) * sizeof(char));
+
+	printList(tail);
+
+	b = new_malloc((2 << 16) * sizeof(char));
 
 	printList(tail);
 
