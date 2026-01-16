@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "tlpi_hdr.h"
 
 #define MINIMUM_ALLOCATION 16
