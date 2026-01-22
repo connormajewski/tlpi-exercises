@@ -146,6 +146,16 @@ int main(int argc, char * argv[]){
 
 	}
 
+	uid_t euid = geteuid();
+
+	if(euid != 0){
+
+		printf("Calling process must be superuser to run.\n");
+
+		return -1;
+
+	}
+
 	listProcessWithFilename(argv[1]);
 
 	return 0;
