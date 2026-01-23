@@ -95,6 +95,10 @@ int listProcessWithFilename(const char * filepath){
 
 					}
 
+					/* Looks like buffer is not null terminated after call to readlink(),
+					meaning that if any future readlink() call is shorter than a previous one,
+					there will be junk data in buffer. */
+
 					buffer[readlinkCheck] = '\0';
 
 					if(strcmp(buffer, filepath) == 0){
@@ -145,6 +149,8 @@ int main(int argc, char * argv[]){
 		return -1;
 
 	}
+
+	// Need to check that process has superuser, since accessing certain /proc/PID/fd directories requires it.
 
 	uid_t euid = geteuid();
 
