@@ -16,6 +16,15 @@ struct linePointer{
 
 int tail(char * file, int lines){
 
+	/*
+
+		Basically I am just going through file chunk by chunk, reading each character,
+		and checking for a newline. If i find one, I make note of the offset and length up until then,
+		then add that information to a circular array of last N lines. When finished, all I need to do is seek
+		file to offset of the lowest stored line, and read/write everything after it to stdout.
+
+	*/
+
 	char lineBuffer[MAX_LINE_LEN];
 
 	int fd;
@@ -52,11 +61,14 @@ int tail(char * file, int lines){
 
 		for(size_t i=0;i<bytesRead;i++){
 
+			currentOffset++;
+
+
 			if(lineBuffer[i] == '\n'){
 
 				struct linePointer temp;
 				temp.offset = previousOffset;
-				temp.len = currentOffset + 1;
+				temp.len = currentOffset;
 
 				previousOffset += currentOffset;
 				currentOffset = 0;
@@ -67,13 +79,26 @@ int tail(char * file, int lines){
 
 			}
 
-			currentOffset++;
 
 		}
 
 	}
 
-	off_t off = lseek(fd, lineTrack[lineCount % lines].offset + 1, SEEK_SET);
+	// Some files don't end with a newline, have to make sure we are checking everything.
+
+	if (currentOffset > 0) {
+
+	    struct linePointer temp;
+	    temp.offset = previousOffset;
+	    temp.len = currentOffset;
+
+	    lineTrack[lineCount] = temp;
+
+	    lineCount = (lineCount + 1) % lines;
+
+	}
+
+	off_t off = lseek(fd, lineTrack[lineCount % lines].offset, SEEK_SET);
 
 	if(off == (off_t) -1){
 
