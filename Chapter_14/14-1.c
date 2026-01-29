@@ -177,16 +177,27 @@ int main(int argc, char * argv[]){
 
 	// Now have sorted array of files. Now need to loop through and delete each one.
 
+	int removeCheck;
+
 	for(int i=0;i<dirScan;i++){
 
 		snprintf(filePath, sizeof(filePath), "%s/%s", argv[2], direntArray[i]->d_name);
 
-		remove(filePath);
+		removeCheck = remove(filePath);
+
+		if(removeCheck == -1){
+
+			printf("Error removing %s.\n", filePath);
+
+		}
+
 		free(direntArray[i]);
 
 	}
 
 	free(direntArray);
+
+	fflush(NULL);
 
 	printf("Attempting umount.\n");
 
