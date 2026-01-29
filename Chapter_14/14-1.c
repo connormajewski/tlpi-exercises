@@ -8,8 +8,32 @@
 #include <limits.h>
 #include <errno.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #define FILENAME_LIMIT 1000000
+
+int filenameNumericSort(const struct dirent ** filename1, const struct dirent ** filename2);
+int fileCheck(const struct dirent *file);
+
+int filenameNumericSort(const struct dirent ** filename1, const struct dirent ** filename2){
+
+	long a = strtol(((*filename1)->d_name) + 1, NULL, 10);
+	long b = strtol(((*filename2)->d_name) + 1, NULL, 10);
+
+	if(a < b) return -1;
+	if(a > b) return 1;
+
+	return 0;
+
+}
+
+int fileCheck(const struct dirent * file){
+
+	if(file->d_name[0] != 'x') return 0;
+
+	return 1;
+
+}
 
 int main(int argc, char * argv[]){
 
@@ -110,7 +134,7 @@ int main(int argc, char * argv[]){
 	srandom(tv.tv_sec ^ tv.tv_usec);
 
 	long a;
-	char filePath[16];
+	char filePath[PATH_MAX];
 	int fd;
 
 	for(int i=0;i<numFiles;i++){
@@ -137,14 +161,42 @@ int main(int argc, char * argv[]){
 
 	printf("%ld Files created.\n", numFiles);
 
-/*
-	printf("Mount successful. Attempting umount.\n");
+	// At this point we need to open directory, scan it, sort files, and delete them.
+
+	struct dirent ** direntArray;
+
+	int dirScan = scandir(argv[2], &direntArray, fileCheck, filenameNumericSort);
+
+	if(dirScan == -1){
+
+		printf("dirscan() error.\n");
+
+		return -1;
+
+	}
+
+	// Now have sorted array of files. Now need to loop through and delete each one.
+
+	for(int i=0;i<dirScan;i++){
+
+		snprintf(filePath, sizeof(filePath), "%s/%s", argv[2], direntArray[i]->d_name);
+
+		remove(filePath);
+		free(direntArray[i]);
+
+	}
+
+	free(direntArray);
+
+	printf("Attempting umount.\n");
 
 	mountCheck = umount(argv[2]);
 
 	if(mountCheck == -1){
 
 		printf("Error unmounting.\n");
+
+		perror("ERROR: ");
 
 		return -1;
 
@@ -161,7 +213,7 @@ int main(int argc, char * argv[]){
 	}
 
 	printf("%s removed successfully.\n", argv[2]);
-*/
+
 	printf("Sucess.\n");
 
 	return 0;
