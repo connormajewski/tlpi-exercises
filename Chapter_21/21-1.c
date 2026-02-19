@@ -21,6 +21,8 @@ int sig_helper(int sig);
 
 void new_abort(void);
 
+// Helper function to unblock specified signal.
+
 int sig_helper(int sig){
 
 	sigset_t mask;
