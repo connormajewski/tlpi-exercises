@@ -1,4 +1,4 @@
-# 20: Signals: Fundamental Cocepts
+# 20: Signals: Fundamental Concepts
 ### **Exercise 20-2**
 Write a program that shows when the disposition of a pending signal is changed to be SIG_IGN, the program never sees (catches) the signal.
 ### **Exercise 20-3**
