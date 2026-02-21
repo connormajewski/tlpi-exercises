@@ -1,5 +1,7 @@
 #include <signal.h>
 
+//Had to define this here or else it will cause errors.
+
 #ifndef SIG_HOLD
 #define SIG_HOLD (sighandler_t) -1
 #endif

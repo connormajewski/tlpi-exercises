@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "22-4.h"
 
+// My attempt at implementing some System-V functions.
+
 sighandler_t new_sigset(int sig, sighandler_t disp){
 
 	struct sigaction action;
