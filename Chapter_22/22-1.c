@@ -6,7 +6,7 @@
 
 	This program shows that SIGCONT is only handled once it is unblocked.
 	Stopping and resuming program sends a SIGCONT, and we can see that the
-	handler only executes once sigprocmask() is called to unblock.
+	handler only executes once sigprocmask() is called to unblock it.
 
 */
 
