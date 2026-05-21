@@ -1,6 +1,6 @@
 # 62: Terminals
 ### **Exercise 62-1**
-Implement *isatty()*. (You may find it useful to read the descriptio nof *tcgetattr()* in Section 62.2)
+Implement *isatty()*. (You may find it useful to read the description of *tcgetattr()* in Section 62.2)
 ### **Exercise 62-2**
 Implement *ttyname()*.
 ### **Exercise 62-3**
